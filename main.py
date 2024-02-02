@@ -1,4 +1,3 @@
-#soo yeah it's an edit, idk what i say else
 import requests
 from bs4 import BeautifulSoup
 import json
@@ -20,6 +19,10 @@ num_pages = 10
  
 # Create a list to store the results
 results = []
+
+# Stopping duplicate results
+written_urls = set()
+
 """
 # Set the headers for the request
 def a():
@@ -51,41 +54,46 @@ def headers():
 """
  
 with open("dorks.txt", "r", encoding="utf8") as f:
-        dorks = f.read().split("\n")
-        for d in dorks:
-            with open("http.txt", "r") as f:
-                proxies = f.read().split("\n")
-                for p in proxies:
-                    print(d)
-                    print(p)
-                    for page_num in range(1, num_pages + 1):
-                        requests.get("https://www.google.com/",proxies={"http": p}, timeout=10, headers=headers)
-                        url2 = f"https://www.google.com/search?q={RandStr()}&start={0}"
-                        response2 = requests.get(url2,proxies={'http': p}, timeout=10, headers=headers)
-                        print(RandStr())
-                        print(response2.status_code)
-                        time.sleep(3)
-                        url = f"https://www.google.com/search?q={d}&start={(page_num - 1) * 10}"
-                        print(url)
-                        response = requests.get(url,proxies={'socks5': p}, timeout=10, headers=headers)
-                        time.sleep(3)
-                        #print(headers())
-                        print(response.status_code)
-                        if response.status_code == 200:
-                            soup = BeautifulSoup(response.text, "html.parser")
-                            search_results = soup.find_all("div", class_="g")
-                            for result in search_results:
-                                Site_element = result.find("cite")
-                                Site = Site_element.text if Site_element else "No Site found"
-                                results.append({"Site": Site})
-                                with open('results.txt', 'a') as f:
-                                    for result in results:
-                                        url = extractor.find_urls(result['Site'])[0]
+    dorks = f.read().split("\n")
+    for d in dorks:
+        with open("http.txt", "r") as f:
+            proxies = f.read().split("\n")
+            for p in proxies:
+                print(d)
+                print(p)
+                for page_num in range(1, num_pages + 1):
+                    requests.get("https://www.google.com/",proxies={"http": p}, timeout=10, headers=headers)
+                    url2 = f"https://www.google.com/search?q={RandStr()}&start={0}"
+                    response2 = requests.get(url2,proxies={'http': p}, timeout=10, headers=headers)
+                    print(RandStr())
+                    print(response2.status_code)
+                    time.sleep(3)
+                    url = f"https://www.google.com/search?q={d}&start={(page_num - 1) * 10}"
+                    print(url)
+                    response = requests.get(url,proxies={'socks5': p}, timeout=10, headers=headers)
+                    time.sleep(3)
+                    print(response.status_code)
+                    if response.status_code == 200:
+                        soup = BeautifulSoup(response.text, "html.parser")
+                        search_results = soup.find_all("div", class_="g")
+                        for result in search_results:
+                            Site_element = result.find("cite")
+                            Site = Site_element.text if Site_element else "No Site found"
+                            results.append({"Site": Site})
+                            with open('results.txt', 'a') as f:
+                                for result in results:
+                                    urls = extractor.find_urls(result['Site'])
+                                    if urls: # Check if the list is not empty
+                                        url = urls[0]
                                         url = url.replace("https://", "")
                                         url = url.replace("http://", "")  
                                         url = url.replace("www.", "")
-                                        f.write(url)
-                                        f.write('\n')
-                                        print({result['Site']})
-                        else:
-                            break
+                                        if url not in written_urls:
+                                            written_urls.add(url)
+                                            f.write(url)
+                                            f.write('\n')
+                                            print({result['Site']})
+                                    else:
+                                        print(f"No URL found for site: {result['Site']}")
+                    else:
+                        break
