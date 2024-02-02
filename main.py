@@ -2,9 +2,14 @@ import requests
 from bs4 import BeautifulSoup
 import json
 from collections import Counter
+import sys
+import io
+
+# Redirect stdout to use UTF-8 encoding
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 # Define the search query
-search_query = "Minecraft server hosting"
+search_query = "Cats"
 
 # Define the number of pages to scrape
 num_pages = 10
@@ -38,7 +43,7 @@ for page_num in range(1, num_pages + 1):
         results.append({"title": title, "description": description})
 
 # Print the results
-for result in results[:5]:
+for result in results:
     print(f"Title: {result['title']}")
     print(f"Description: {result['description']}")
     print("----------------------------------")
