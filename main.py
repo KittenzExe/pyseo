@@ -2,57 +2,98 @@ import requests
 from bs4 import BeautifulSoup
 import json
 from collections import Counter
-import sys
-import io
-
-# Redirect stdout to use UTF-8 encoding
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-
+from fake_headers import Headers
+from urlextract import URLExtract
+import time
+import ua_generator
+import socks
+import socket
+import random
+ 
+ 
+extractor = URLExtract()
 # Define the search query
-search_query = "Cats"
-
+ 
 # Define the number of pages to scrape
 num_pages = 10
-
+ 
 # Create a list to store the results
 results = []
 
-# Create a counter to track the number of results found
-keywords = Counter()
+# Stopping duplicate results
+written_urls = set()
 
+"""
 # Set the headers for the request
+def a():
+    with open("User-Agent.txt", "r", encoding="utf8") as f:
+        agents = f.read().split("\n")
+        for u in agents:
+            miykle = {u}
+            return miykle
+            break
+"""
+def RandStr():
+    with open("text-output.txt", "r") as f:
+        words = f.read(random.randint(3, 9)).split("\n")
+        for w in words:
+            return w
 headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
 }
-
-# Loop through each page of search results
-for page_num in range(1, num_pages + 1):
-    url = f"https://www.google.com/search?q={search_query}&start={(page_num - 1) * 10}"
-    response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, "html.parser")
-    search_results = soup.find_all("div", class_="g")
-    
-    # Get the title and description of the search result in a loop
-    for result in search_results:
-        title_element = result.find("h3")
-        title = title_element.text if title_element else "No title found"
-        description_element = result.find("div", class_="VwiC3b yXK7lf lVm3ye r025kc hJNv6b Hdw6tb")
-        description = description_element.text if description_element else "No description found"
-
-        # Add the title and description to the results list
-        results.append({"title": title, "description": description})
-
-# Print the results
-for result in results:
-    print(f"Title: {result['title']}")
-    print(f"Description: {result['description']}")
-    print("----------------------------------")
-
-    keywords.update(result['description'].split())
-
-# Save the results to the respective JSON file
-with open('results.json', 'w') as f:
-    json.dump(results, f, indent=4)
-
-with open('keywords.json', 'w') as f:
-    json.dump(dict(keywords), f, indent=4)
+ 
+"""
+def headers():
+    if __name__ == "__main__":
+        header = Headers(
+            browser="chrome",  # Generate only Chrome UA
+            os="win",  # Generate ony Windows platform
+            headers=True  # generate misc headers
+        )
+        return header.generate()
+"""
+ 
+with open("dorks.txt", "r", encoding="utf8") as f:
+    dorks = f.read().split("\n")
+    for d in dorks:
+        with open("http.txt", "r") as f:
+            proxies = f.read().split("\n")
+            for p in proxies:
+                print(d)
+                print(p)
+                for page_num in range(1, num_pages + 1):
+                    requests.get("https://www.google.com/",proxies={"http": p}, timeout=10, headers=headers)
+                    url2 = f"https://www.google.com/search?q={RandStr()}&start={0}"
+                    response2 = requests.get(url2,proxies={'http': p}, timeout=10, headers=headers)
+                    print(RandStr())
+                    print(response2.status_code)
+                    time.sleep(3)
+                    url = f"https://www.google.com/search?q={d}&start={(page_num - 1) * 10}"
+                    print(url)
+                    response = requests.get(url,proxies={'socks5': p}, timeout=10, headers=headers)
+                    time.sleep(3)
+                    print(response.status_code)
+                    if response.status_code == 200:
+                        soup = BeautifulSoup(response.text, "html.parser")
+                        search_results = soup.find_all("div", class_="g")
+                        for result in search_results:
+                            Site_element = result.find("cite")
+                            Site = Site_element.text if Site_element else "No Site found"
+                            results.append({"Site": Site})
+                            with open('results.txt', 'a') as f:
+                                for result in results:
+                                    urls = extractor.find_urls(result['Site'])
+                                    if urls: # Check if the list is not empty
+                                        url = urls[0]
+                                        url = url.replace("https://", "")
+                                        url = url.replace("http://", "")  
+                                        url = url.replace("www.", "")
+                                        if url not in written_urls:
+                                            written_urls.add(url)
+                                            f.write(url)
+                                            f.write('\n')
+                                            print({result['Site']})
+                                    else:
+                                        print(f"No URL found for site: {result['Site']}")
+                    else:
+                        break
